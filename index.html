@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- viewport-fit=cover + user-scalable=no: fill the screen and stop the
+         browser from zooming/scrolling when both thumbs touch the screen. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>MuzzDivers</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #1a1a2e;
+        overflow: hidden;
+        /* Disable the browser's own touch gestures so the joysticks get every touch. */
+        touch-action: none;
+        overscroll-behavior: none;
+      }
+      #game {
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
