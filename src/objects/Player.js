@@ -72,6 +72,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       const bx = this.x + Math.cos(this.aimAngle) * spawnDist;
       const by = this.y + Math.sin(this.aimAngle) * spawnDist;
       this.bulletPool.fire(bx, by, this.aimAngle);
+      // Announce the shot so effects (camera shake, future muzzle flash/SFX)
+      // can react without Player knowing about them. Sprites are EventEmitters.
+      this.emit('fire');
     }
   }
 
