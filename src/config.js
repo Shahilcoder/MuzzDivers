@@ -40,10 +40,24 @@ export const CONFIG = {
     lifespanMs: 1500, // auto-recycle after this long in flight
   },
 
-  // --- Super mode (toggle) ---------------------------------------------------
+  // --- Super mode (how strong) ----------------------------------------------
   superMode: {
     speedMultiplier: 2.0, // moveSpeed 320 -> 640 px/s while active
     fireRateDivisor: 6.0, // fireRateMs 540 -> 90 ms while active (higher = faster)
+  },
+
+  // --- Music (the track + when it drives super mode) ------------------------
+  // superMode above is "how strong"; this block owns "which track + when".
+  music: {
+    key: 'music',
+    loop: true,
+    volume: 0.6,
+    // Playback-time windows (seconds) where super mode is active.
+    // 00:38–01:17 and 02:08–02:46 of the current track.
+    superWindows: [
+      { start: 38, end: 77 },
+      { start: 128, end: 166 },
+    ],
   },
 
   // --- Enemies ---------------------------------------------------------------
