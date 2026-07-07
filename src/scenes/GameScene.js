@@ -16,6 +16,7 @@ import DesktopControls from '../systems/DesktopControls.js';
 import VirtualJoystick from '../systems/VirtualJoystick.js';
 import TerrainGenerator from '../systems/TerrainGenerator.js';
 import EnemyManager from '../systems/EnemyManager.js';
+import SuperModeEffects from '../systems/SuperModeEffects.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -32,6 +33,11 @@ export default class GameScene extends Phaser.Scene {
       this.bulletPool
     );
     this.desktop = new DesktopControls(this);
+
+    // Visual "juice" for super mode. Owns the aura/trail/tint/squash + camera
+    // shake; the player emits 'fire' each shot so shake can react.
+    this.superFx = new SuperModeEffects(this, this.player);
+    this.player.on('fire', () => this.superFx.onFire());
 
     // --- Touch controls --------------------------------------------------
     // CRITICAL multi-touch step: by default Phaser tracks one pointer. Adding a
@@ -181,6 +187,7 @@ export default class GameScene extends Phaser.Scene {
   toggleSuperMode() {
     this.superMode = !this.superMode;
     this.player.superMode = this.superMode;
+    this.superFx.setActive(this.superMode); // ramp the visual effects in/out
 
     this.superBtn.setText(`SUPER: ${this.superMode ? 'ON' : 'OFF'}`);
     this.superBtn.setBackgroundColor(this.superMode ? '#16a34a' : '#444');
@@ -234,8 +241,10 @@ export default class GameScene extends Phaser.Scene {
       ? this.rightStick.vector
       : this.desktop.getRightStick(this.player);
 
-    // 2. Drive the player.
+    // 2. Drive the player, then update its super-mode look (needs current
+    //    position/velocity, so it runs right after the player moves).
     this.player.update(time, leftStick, rightStick);
+    this.superFx.update(time);
 
     // 3. Extend/recycle terrain ahead of and behind the camera.
     this.terrain.update(this.cameras.main.scrollX);

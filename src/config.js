@@ -44,6 +44,38 @@ export const CONFIG = {
   superMode: {
     speedMultiplier: 2.0, // moveSpeed 320 -> 640 px/s while active
     fireRateDivisor: 6.0, // fireRateMs 540 -> 90 ms while active (higher = faster)
+
+    // Visual "juice" for the powered-up state. A single intensity (0->1) ramps
+    // all of these in/out together so toggling off restores the plain player
+    // cleanly. Owned entirely by src/systems/SuperModeEffects.js.
+    effects: {
+      rampMs: 200, // how long intensity takes to ramp 0<->1 on toggle
+      pulseMs: 600, // period of the gentle "breathe" while active
+
+      // Afterimage / motion trail (a recycled pool of tinted player ghosts).
+      trailPoolSize: 12, // ghosts pre-created once, then recycled
+      trailSpawnMs: 40, // min gap between spawning ghosts
+      trailFadeMs: 300, // each ghost fades alpha->0 over this long
+      trailMinSpeed: 40, // only trail when moving faster than this (px/s)
+      trailAlpha: 0.5, // starting alpha of a fresh ghost (before intensity)
+
+      // Aura — a soft additive glow that follows and pulses around the player.
+      auraScale: 1.9, // aura diameter as a multiple of player size
+      auraAlpha: 0.6, // peak aura alpha (before intensity)
+
+      // Squash & stretch — how far velocity can deform the sprite (0..1).
+      maxStretch: 0.25,
+
+      // Tint pulse — player color breathes between these two cyans.
+      tintFrom: 0x22d3ee, // base cyan (matches the player texture)
+      tintTo: 0x67e8f9, // brighter cyan at the pulse peak
+
+      // Camera shake fired on each shot while super is active.
+      shakeMs: 60,
+      shakeIntensity: 0.004,
+
+      accent: 0x38bdf8, // aura + trail tint color
+    },
   },
 
   // --- Enemies ---------------------------------------------------------------

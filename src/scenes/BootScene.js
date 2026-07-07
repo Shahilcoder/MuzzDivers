@@ -77,6 +77,22 @@ export default class BootScene extends Phaser.Scene {
     g.generateTexture('ground', ts, ts);
     g.clear();
 
+    // Super-mode aura — a soft radial glow that fades to transparent at the
+    // edge. Graphics can't draw a true radial gradient, so this one texture is
+    // painted on a Canvas via createRadialGradient. It's tinted at runtime by
+    // SuperModeEffects, so the base color here is plain white.
+    const glowD = 256; // texture is a square; larger = smoother when scaled up
+    const glowTex = this.textures.createCanvas('superGlow', glowD, glowD);
+    const gctx = glowTex.getContext();
+    const r = glowD / 2;
+    const grad = gctx.createRadialGradient(r, r, 0, r, r, r);
+    grad.addColorStop(0, 'rgba(255,255,255,1)'); // solid core
+    grad.addColorStop(0.5, 'rgba(255,255,255,0.5)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)'); // transparent rim
+    gctx.fillStyle = grad;
+    gctx.fillRect(0, 0, glowD, glowD);
+    glowTex.refresh(); // push the canvas pixels into the GPU texture
+
     // Joystick base — a translucent ring.
     const baseR = CONFIG.joystick.baseRadius;
     g.fillStyle(0xffffff, CONFIG.joystick.baseAlpha);
