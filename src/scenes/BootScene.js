@@ -9,6 +9,9 @@
 
 import Phaser from 'phaser';
 import { CONFIG } from '../config.js';
+// Imported as a URL so Vite bundles + fingerprints the file for production
+// builds. A bare path would only resolve for files placed in public/.
+import musicUrl from '../assets/audio/PROVANT_Fatestrange_Fake.mp3';
 
 export default class BootScene extends Phaser.Scene {
   constructor() {
@@ -30,6 +33,10 @@ export default class BootScene extends Phaser.Scene {
     // The joystick UI ('joyBase' / 'joyThumb') can stay generated. Because
     // every system refers to textures only by these keys, no other file changes.
     // ---------------------------------------------------------------------
+
+    // Soundtrack — GameScene plays this on a loop and uses its playback
+    // position to drive super mode (see CONFIG.music).
+    this.load.audio(CONFIG.music.key, musicUrl);
   }
 
   create() {

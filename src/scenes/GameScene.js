@@ -101,9 +101,19 @@ export default class GameScene extends Phaser.Scene {
     cam.startFollow(this.player, true, 0.12, 0.12);
     cam.setDeadzone(0, CONFIG.height * 0.4);
 
+    // --- Music ------------------------------------------------------------
+    // Start the soundtrack looping. Its playback position (music.seek) is the
+    // clock that drives super mode each frame in update(). Because the music is
+    // the clock, this survives looping and browser autoplay-locks for free.
+    this.music = this.sound.add(CONFIG.music.key, {
+      loop: CONFIG.music.loop,
+      volume: CONFIG.music.volume,
+    });
+    this.music.play();
+
     // --- Scoring + HUD ---------------------------------------------------
     this.isGameOver = false;
-    this.superMode = false; // toggled on/off by the SUPER button in the HUD
+    this.superMode = false; // driven automatically by the music (see update)
     // Furthest rightward progress, in world px, ever reached. Score never drops
     // when you backtrack — only moving past your record counts.
     this.maxDistance = 0;
@@ -167,7 +177,9 @@ export default class GameScene extends Phaser.Scene {
       .setScrollFactor(0)
       .setDepth(901);
 
-    // Super mode toggle button — top-right, tucked below the score text.
+    // Super mode indicator — top-right, tucked below the score text. Display
+    // only (no interactivity): the music decides when super mode is on, so this
+    // just reflects that state. Green while active, grey while off.
     this.superBtn = this.add
       .text(this.scale.width - 24, 62, 'SUPER: OFF', {
         fontFamily: 'monospace',
@@ -178,19 +190,31 @@ export default class GameScene extends Phaser.Scene {
       })
       .setOrigin(1, 0) // top-right, below the score
       .setScrollFactor(0) // pin to camera
-      .setDepth(1002) // above HUD/joysticks
-      .setInteractive({ useHandCursor: true });
-    this.superBtn.on('pointerdown', () => this.toggleSuperMode());
+      .setDepth(1002); // above HUD/joysticks
   }
 
-  // Flip super mode on/off, sync it to the player, and reflect it in the button.
-  toggleSuperMode() {
-    this.superMode = !this.superMode;
-    this.player.superMode = this.superMode;
-    this.superFx.setActive(this.superMode); // ramp the visual effects in/out
+  // Single sync point for super mode. Idempotent: only touches state when the
+  // value actually changes, so it's safe to call every frame from update().
+  // Sets the flag, mirrors it onto the player, ramps the visual effects, and
+  // updates the HUD indicator.
+  setSuperMode(active) {
+    if (active === this.superMode) return;
+    this.superMode = active;
+    this.player.superMode = active;
 
-    this.superBtn.setText(`SUPER: ${this.superMode ? 'ON' : 'OFF'}`);
-    this.superBtn.setBackgroundColor(this.superMode ? '#16a34a' : '#444');
+    this.superFx.setActive(active); // ramp the aura/trail/tint in/out to match
+
+    this.superBtn.setText(`SUPER: ${active ? 'ON' : 'OFF'}`);
+    this.superBtn.setBackgroundColor(active ? '#16a34a' : '#444');
+  }
+
+  // Given the current playback position (seconds), decide whether we are inside
+  // any configured super-mode window. Drives setSuperMode() each frame.
+  isInSuperWindow(seconds) {
+    // CONFIG.music.superWindows (each has { start, end } in seconds).
+    // Array.prototype.some() is a good fit here: it returns true if any element passes the test.
+    // No Allocation: don't create any new arrays or objects; just check the existing CONFIG.music.superWindows.
+    return CONFIG.music.superWindows.some((w) => seconds >= w.start && seconds <= w.end);
   }
 
   // Current score = distance progress + kill bonus.
@@ -255,12 +279,17 @@ export default class GameScene extends Phaser.Scene {
     // 5. Recycle spent bullets.
     this.bulletPool.update(this.cameras.main.scrollX);
 
-    // 6. Update score (furthest rightward progress) and the HUD.
+    // 6. Drive super mode from the music's playback position. music.seek is
+    //    0 until the browser unlocks audio on first gesture, so super mode
+    //    simply stays off until the track is actually playing.
+    this.setSuperMode(this.isInSuperWindow(this.music.seek));
+
+    // 7. Update score (furthest rightward progress) and the HUD.
     const progress = this.player.x - CONFIG.player.startX;
     if (progress > this.maxDistance) this.maxDistance = progress;
     this.updateHUD();
 
-    // 7. Lose condition: fell into a pit (below the world).
+    // 8. Lose condition: fell into a pit (below the world).
     if (this.player.y > this.terrain.worldBottom) {
       this.endGame();
     }
