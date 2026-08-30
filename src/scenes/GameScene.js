@@ -111,6 +111,17 @@ export default class GameScene extends Phaser.Scene {
     });
     this.music.play();
 
+    // Phaser sounds live on the global sound manager, not the scene, so they
+    // outlive the scene unless we clean up. Without this, restarting the game
+    // would stack a second track on top of the first.
+    this.events.once('shutdown', () => {
+      if (this.music) {
+        this.music.stop();
+        this.music.destroy();
+        this.music = null;
+      }
+    });
+
     // --- Scoring + HUD ---------------------------------------------------
     this.isGameOver = false;
     this.superMode = false; // driven automatically by the music (see update)
@@ -299,6 +310,7 @@ export default class GameScene extends Phaser.Scene {
   endGame() {
     if (this.isGameOver) return;
     this.isGameOver = true;
+    this.music?.stop();
     this.scene.start('GameOverScene', { score: this.computeScore() });
   }
 }
