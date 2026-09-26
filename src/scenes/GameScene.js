@@ -17,6 +17,7 @@ import VirtualJoystick from '../systems/VirtualJoystick.js';
 import TerrainGenerator from '../systems/TerrainGenerator.js';
 import EnemyManager from '../systems/EnemyManager.js';
 import SuperModeEffects from '../systems/SuperModeEffects.js';
+import { defaultTrackDescriptor } from '../systems/trackSource.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -105,7 +106,16 @@ export default class GameScene extends Phaser.Scene {
     // Start the soundtrack looping. Its playback position (music.seek) is the
     // clock that drives super mode each frame in update(). Because the music is
     // the clock, this survives looping and browser autoplay-locks for free.
-    this.music = this.sound.add(CONFIG.music.key, {
+    //
+    // WHICH track comes from the registry, which is game-wide and survives
+    // scene.start(). That matters because GameOverScene restarts this scene
+    // with no init data — passing the track as scene data would silently revert
+    // to the bundled song after one death.
+    const track = this.registry.get('activeTrack') ?? defaultTrackDescriptor();
+    this.superWindows = track.superWindows ?? [];
+    this.trackName = track.name;
+
+    this.music = this.sound.add(track.key, {
       loop: CONFIG.music.loop,
       volume: CONFIG.music.volume,
     });
@@ -222,10 +232,11 @@ export default class GameScene extends Phaser.Scene {
   // Given the current playback position (seconds), decide whether we are inside
   // any configured super-mode window. Drives setSuperMode() each frame.
   isInSuperWindow(seconds) {
-    // CONFIG.music.superWindows (each has { start, end } in seconds).
+    // this.superWindows came from the active track (each has { start, end } in
+    // seconds) — hardcoded for the bundled song, player-authored otherwise.
     // Array.prototype.some() is a good fit here: it returns true if any element passes the test.
-    // No Allocation: don't create any new arrays or objects; just check the existing CONFIG.music.superWindows.
-    return CONFIG.music.superWindows.some((w) => seconds >= w.start && seconds <= w.end);
+    // No Allocation: don't create any new arrays or objects; just check the existing array.
+    return this.superWindows.some((w) => seconds >= w.start && seconds <= w.end);
   }
 
   // Current score = distance progress + kill bonus.
