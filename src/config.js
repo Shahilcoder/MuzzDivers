@@ -92,6 +92,67 @@ export const CONFIG = {
     ],
   },
 
+  // --- Custom tracks (upload your own music, author its super windows) ------
+  // The block above owns the ONE bundled track. This block owns everything
+  // about player-supplied tracks: where they're stored, how they're decoded
+  // into a drawable waveform, and how the editor looks/feels.
+  tracks: {
+    // IndexedDB — holds the uploaded audio Blob, its cached peaks, and its
+    // authored super windows. One object store keyed by track id.
+    dbName: 'muzzdivers',
+    dbVersion: 1,
+    storeName: 'tracks',
+
+    // Which track to play, remembered across sessions. Same localStorage
+    // convention as scoring.bestScoreKey above. Holds a track id, or the
+    // sentinel defaultId for the bundled track.
+    selectedKey: 'muzzdivers.selectedTrackId',
+    defaultId: 'default',
+
+    // Rejected before we even try to decode — a huge file would blow memory
+    // in decodeAudioData long before it became a playable track.
+    maxFileMb: 20,
+
+    // How many magnitude samples we reduce the whole song down to. One
+    // symmetric value per bucket (the waveform is drawn mirrored about a
+    // centerline, so a min/max pair buys nothing). 1600 always exceeds the
+    // canvas width, so drawing downsamples per column rather than stretching.
+    peakBuckets: 1600,
+
+    // Track list is PAGED, not scrolled — see TrackSelectScene. index.html
+    // sets `touch-action: none` globally, so there is no native scrolling to
+    // lean on and a drag-scroll container would be new machinery for nothing.
+    listPageSize: 3,
+
+    // --- Waveform editor -----------------------------------------------------
+    editor: {
+      waveformHeight: 230, // the paintable waveform body
+      scrubHeight: 46, // the seek-only strip beneath it
+
+      // Scale.FIT shrinks the design space to the device (~0.54x on a typical
+      // landscape phone), so this 48 becomes ~26 real px. Anything smaller is
+      // not grabbable with a thumb. Pair with the nudge buttons for precision.
+      handleGrabPx: 48,
+
+      minWindowSec: 1.0, // shorter drags are discarded as accidental taps
+      mergeGapSec: 0.05, // regions this close (or overlapping) fuse into one
+      nudgeSec: 0.5, // how far one +/- button press moves a selected edge
+
+      // Colors
+      waveColor: 0x64748b, // the silhouette
+      rulerColor: 0x475569,
+      rulerTextColor: '#94a3b8',
+      regionFill: 0x16a34a, // a super-mode window
+      regionAlpha: 0.35, // translucent so the waveform reads through it
+      regionEdge: 0x4ade80,
+      selectedFill: 0xfde047, // the region currently in the nudge panel
+      selectedAlpha: 0.3,
+      playhead: 0xf472b6,
+      scrubTrack: 0x334155,
+      scrubFill: 0x22d3ee,
+    },
+  },
+
   // --- Enemies ---------------------------------------------------------------
   enemy: {
     size: 44,

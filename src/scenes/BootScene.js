@@ -1,6 +1,7 @@
 // =============================================================================
 // BootScene — the FIRST scene. Its only job is to make every texture the game
-// needs, then hand off to GameScene.
+// needs, then hand off to TrackSelectScene (which picks the music, then starts
+// GameScene).
 //
 // Right now all art is generated at runtime as simple colored shapes using
 // Phaser's Graphics API. Nothing else in the codebase references raw art — so
@@ -41,7 +42,9 @@ export default class BootScene extends Phaser.Scene {
 
   create() {
     this.createPlaceholderTextures();
-    this.scene.start('GameScene');
+    // Straight into the track picker rather than the game. The bundled track is
+    // row 0 there, so "just play" is still one tap.
+    this.scene.start('TrackSelectScene');
   }
 
   // Build all placeholder textures as labeled colored shapes. Each call draws

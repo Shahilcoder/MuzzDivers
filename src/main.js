@@ -10,6 +10,8 @@
 import Phaser from 'phaser';
 import { CONFIG } from './config.js';
 import BootScene from './scenes/BootScene.js';
+import TrackSelectScene from './scenes/TrackSelectScene.js';
+import TrackEditorScene from './scenes/TrackEditorScene.js';
 import GameScene from './scenes/GameScene.js';
 import GameOverScene from './scenes/GameOverScene.js';
 
@@ -43,8 +45,16 @@ const gameConfig = {
     },
   },
 
-  // Scenes run/boot in array order; BootScene starts GameScene when ready.
-  scene: [BootScene, GameScene, GameOverScene],
+  // Scenes run/boot in array order; BootScene starts TrackSelectScene when its
+  // textures are ready. Order here is registration only — every hand-off is an
+  // explicit scene.start().
+  scene: [
+    BootScene,
+    TrackSelectScene,
+    TrackEditorScene,
+    GameScene,
+    GameOverScene,
+  ],
 };
 
 const game = new Phaser.Game(gameConfig);
